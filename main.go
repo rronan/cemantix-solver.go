@@ -143,18 +143,27 @@ func computeSimilarities(word string, words []string, model *word2vec.Model) ([]
 	return res, err
 }
 
-func handlePanic(weights []float32, weights64 []float64) {
-	r := recover()
-	if r != nil {
-		fmt.Println(weights64[:100])
-		panic(r)
-	}
-}
+// func handlePanic(weights []float32, weights64 []float64) {
+// 	r := recover()
+// 	if r != nil {
+// 		sum := 0.0
+// 		for _, w := range weights64 {
+// 			sum += w
+// 		}
+// 		fmt.Println("sum weights64", sum)
+// 		sum32 := float32(0.0)
+// 		for _, w := range weights {
+// 			sum32 += w
+// 		}
+// 		fmt.Println("sum weights32", sum32)
+// 		panic(r)
+// 	}
+// }
 
 func step(weights []float32, words []string, model *word2vec.Model) (bool, error) {
 	weights64 := convertTo64(weights)
 	sampler := sampleuv.NewWeighted(weights64, nil)
-	defer handlePanic(weights, weights64)
+	// defer handlePanic(weights, weights64)
 	index, _ := sampler.Take()
 	word := words[index]
 	weights = append(weights[:index], weights[index+1:]...)
@@ -173,15 +182,14 @@ func step(weights []float32, words []string, model *word2vec.Model) (bool, error
 	}
 	sum := float32(0.0)
 	for i, sim := range similarities {
-		weights[i] /= math32.Abs(score - sim)
+		coef := math32.Abs(score - sim)
+		if coef > 0 {
+			weights[i] /= coef
+		}
 		sum += weights[i]
 	}
 	for i := range similarities {
-		if sum == 0 {
-			weights[i] = 1.0 / float32(len(weights))
-		} else {
-			weights[i] /= sum
-		}
+		weights[i] /= sum
 	}
 	return false, nil
 }
