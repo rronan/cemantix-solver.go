@@ -143,10 +143,10 @@ func computeSimilarities(word string, words []string, model *word2vec.Model) ([]
 	return res, err
 }
 
-func HandlePanic(weights []float32, weights64 []float64) {
+func handlePanic(weights []float32, weights64 []float64) {
 	r := recover()
 	if r != nil {
-		fmt.Println(weights64[:1000])
+		fmt.Println(weights64[:100])
 		panic(r)
 	}
 }
@@ -154,7 +154,7 @@ func HandlePanic(weights []float32, weights64 []float64) {
 func step(weights []float32, words []string, model *word2vec.Model) (bool, error) {
 	weights64 := convertTo64(weights)
 	sampler := sampleuv.NewWeighted(weights64, nil)
-	defer HandlePanic(weights, weights64)
+	defer handlePanic(weights, weights64)
 	index, _ := sampler.Take()
 	word := words[index]
 	weights = append(weights[:index], weights[index+1:]...)
