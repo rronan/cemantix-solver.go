@@ -188,16 +188,11 @@ func step(weights []float32, words []string, model *word2vec.Model) (bool, error
 
 func main() {
 	model := loadBinary(WORD2VEC_PATH)
-	fmt.Println("Number of words in model:", len(model.Words()))
 	records := readCsvFile(LEXICON_PATH)
-	fmt.Println("Total number of lines in lexicon:", len(records))
 	words, weights, err := processCSV(records, model)
-	fmt.Println(len(words), len(weights))
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Number of significant lines:", len(words))
-	fmt.Println(words[:10], weights[:10])
 	rand.Seed(uint64(time.Now().UnixNano()))
 	c := 0
 	success := false
