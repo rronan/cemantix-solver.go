@@ -150,10 +150,10 @@ func step(weights []float32, words []string, model *word2vec.Model) (int, bool, 
 	index, _ := sampler.Take()
 	word := words[index]
 	score, err := getScore(word)
-	fmt.Println(word, score)
 	if err != nil {
 		return index, false, err
 	}
+	fmt.Println(word, score)
 	if score == 1 {
 		return index, true, nil
 	}
