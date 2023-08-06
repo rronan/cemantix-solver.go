@@ -1,5 +1,7 @@
-code.sajari.com/word2vec v1.0.1 h1:DxP34JKBQ4v0YStYsnRE3Fm11d+ddTtZ2z2s4uSsleU=
-code.sajari.com/word2vec v1.0.1/go.mod h1:Ut8mx+2Q79Js3uGW1+HtbuuUIWoGMAMCOZK06xDly00=
+git.maze.io/go/math32 v0.0.0-20181106113604-c78ed91899f1 h1:VptAfeYGT/FPuzWFzyvne+vdXT881tTmEMhV+txQ+E0=
+git.maze.io/go/math32 v0.0.0-20181106113604-c78ed91899f1/go.mod h1:bJoNp9NkyV0uYcHyBBgt/o4wVEVc8wfGXFBV7qgPReE=
+github.com/rronan/word2vec v0.0.0-20230806123746-0968044eefda h1:X+4rQprTySGnaW+YNz65XFB3d/bopktLAHRuC/yC8tk=
+github.com/rronan/word2vec v0.0.0-20230806123746-0968044eefda/go.mod h1:3RjBIOYgS6MgBhNOmlDbUTXlfFvrqLZDFp2EZSxdYY4=
 github.com/ziutek/blas v0.0.0-20190227122918-da4ca23e90bb h1:uWiILQloLUVdtPYr1ZZo2zqtlpzo4G8vUpglo/Fs2H8=
 github.com/ziutek/blas v0.0.0-20190227122918-da4ca23e90bb/go.mod h1:J3xKssoVdrwZ2E29fIox/EKxOZWimS7AZ4fOTCFkOLo=
 golang.org/x/exp v0.0.0-20230321023759-10a507213a29 h1:ooxPy7fPvB4kwsA2h+iBNHkAbp/4JxTSwCmvdjEYmug=

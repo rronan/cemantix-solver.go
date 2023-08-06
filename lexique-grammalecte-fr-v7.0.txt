@@ -1,0 +1,15 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# Lexique des formes fléchies du français - Grammalecte v7.0
+# Licence : MPL v2.0
+
+Corpus :
+ * Google 1-grams       ->    145,630,297,766 mots reconnus /    168,120,132,966
+ * Wikipédia            ->      1,091,654,249 mots reconnus /      1,642,516,410
+ * Wikisource           ->        569,670,130 mots reconnus /        685,439,799
+ * Littérature          ->        144,651,201 mots reconnus /        157,575,024
+
+ * TOTAL                ->    147,436,273,346 mots reconnus /    170,605,664,199
+

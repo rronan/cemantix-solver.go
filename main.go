@@ -22,7 +22,7 @@ import (
 
 const LEXICON_PATH = "lexique-grammalecte-fr-v7.0.csv"
 const WORD2VEC_PATH = "frWac_non_lem_no_postag_no_phrase_200_cbow_cut100.bin"
-const CEMANTIX_URL = "https://cemantix.certitudes.org/score"
+const CEMANTIX_URL = "https://cemantix.certitudes.org"
 
 func loadBinary(path string) *word2vec.Model {
 	r, err := os.Open(path)
@@ -96,12 +96,13 @@ func getScore(word string) (float32, error) {
 	// curl 'https://cemantix.certitudes.org/score' -X POST -H 'Content-Type: application/x-www-form-urlencoded' -H 'Origin: https://cemantix.certitudes.org' --data-raw 'word=est' -i
 	data := fmt.Sprintf(`word=%s`, word)
 	body := []byte(data)
-	r, err := http.NewRequest("POST", CEMANTIX_URL, bytes.NewBuffer(body))
+	url := fmt.Sprintf("%s/score", CEMANTIX_URL)
+	r, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	if err != nil {
 		return 0, err
 	}
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	r.Header.Add("Origin", "https://cemantix.certitudes.org")
+	r.Header.Add("Origin", CEMANTIX_URL)
 	client := &http.Client{}
 	res, err := client.Do(r)
 	if err != nil {
@@ -143,27 +144,9 @@ func computeSimilarities(word string, words []string, model *word2vec.Model) ([]
 	return res, err
 }
 
-// func handlePanic(weights []float32, weights64 []float64) {
-// 	r := recover()
-// 	if r != nil {
-// 		sum := 0.0
-// 		for _, w := range weights64 {
-// 			sum += w
-// 		}
-// 		fmt.Println("sum weights64", sum)
-// 		sum32 := float32(0.0)
-// 		for _, w := range weights {
-// 			sum32 += w
-// 		}
-// 		fmt.Println("sum weights32", sum32)
-// 		panic(r)
-// 	}
-// }
-
 func step(weights []float32, words []string, model *word2vec.Model) (bool, error) {
 	weights64 := convertTo64(weights)
 	sampler := sampleuv.NewWeighted(weights64, nil)
-	// defer handlePanic(weights, weights64)
 	index, _ := sampler.Take()
 	word := words[index]
 	weights = append(weights[:index], weights[index+1:]...)
