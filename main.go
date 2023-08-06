@@ -144,24 +144,22 @@ func computeSimilarities(word string, words []string, model *word2vec.Model) ([]
 	return res, err
 }
 
-func step(weights []float32, words []string, model *word2vec.Model) (bool, error) {
+func step(weights []float32, words []string, model *word2vec.Model) (int, bool, error) {
 	weights64 := convertTo64(weights)
 	sampler := sampleuv.NewWeighted(weights64, nil)
 	index, _ := sampler.Take()
 	word := words[index]
-	weights = append(weights[:index], weights[index+1:]...)
-	words = append(words[:index], words[index+1:]...)
 	score, err := getScore(word)
 	fmt.Println(word, score)
 	if err != nil {
-		return false, err
+		return index, false, err
 	}
 	if score == 1 {
-		return true, nil
+		return index, true, nil
 	}
 	similarities, err := computeSimilarities(word, words, model)
 	if err != nil {
-		return false, err
+		return index, false, err
 	}
 	sum := float32(0.0)
 	for i, sim := range similarities {
@@ -174,21 +172,27 @@ func step(weights []float32, words []string, model *word2vec.Model) (bool, error
 	for i := range similarities {
 		weights[i] /= sum
 	}
-	return false, nil
+	return index, false, nil
 }
 
 func main() {
 	model := loadBinary(WORD2VEC_PATH)
 	records := readCsvFile(LEXICON_PATH)
 	words, weights, err := processCSV(records, model)
+	for i := range weights {
+		weights[i] = float32(1.0)
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
 	rand.Seed(uint64(time.Now().UnixNano()))
 	c := 0
+	var index int
 	success := false
 	for !success {
-		success, err = step(weights, words, model)
+		index, success, err = step(weights, words, model)
+		weights = append(weights[:index], weights[index+1:]...)
+		words = append(words[:index], words[index+1:]...)
 		if err != nil {
 			log.Println(err)
 		}
