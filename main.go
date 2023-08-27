@@ -23,6 +23,8 @@ import (
 const LEXICON_PATH = "lexique-grammalecte-fr-v7.0.csv"
 const WORD2VEC_PATH = "frWac_non_lem_no_postag_no_phrase_200_cbow_cut100.bin"
 const CEMANTIX_URL = "https://cemantix.certitudes.org"
+const COEF_SUM = 0
+const COEF_PROD = 1
 
 func loadBinary(path string) *word2vec.Model {
 	r, err := os.Open(path)
@@ -123,12 +125,16 @@ func getScore(word string) (float32, error) {
 	return post.Score, nil
 }
 
-func convertTo64(ar []float32) []float64 {
-	newar := make([]float64, len(ar))
-	var v float32
+func makeWeights(freqs []float32, sums []float32, prods []float32) []float64 {
+	newar := make([]float64, len(freqs))
 	var i int
-	for i, v = range ar {
-		newar[i] = float64(v)
+	sum := float64(0.0)
+	for i = range freqs {
+		newar[i] = float64(freqs[i]) * (COEF_SUM/(float64(sums[i])) + COEF_PROD/(float64(prods[i])))
+		sum += newar[i]
+	}
+	for i = range newar {
+		newar[i] /= sum
 	}
 	return newar
 }
@@ -144,8 +150,8 @@ func computeSimilarities(word string, words []string, model *word2vec.Model) ([]
 	return res, err
 }
 
-func step(weights []float32, words []string, model *word2vec.Model) (int, bool, error) {
-	weights64 := convertTo64(weights)
+func step(words []string, model *word2vec.Model, freqs []float32, sums []float32, prods []float32) (int, bool, error) {
+	weights64 := makeWeights(freqs, sums, prods)
 	sampler := sampleuv.NewWeighted(weights64, nil)
 	index, _ := sampler.Take()
 	word := words[index]
@@ -161,16 +167,17 @@ func step(weights []float32, words []string, model *word2vec.Model) (int, bool, 
 	if err != nil {
 		return index, false, err
 	}
-	sum := float32(0.0)
 	for i, sim := range similarities {
-		coef := math32.Abs(score - sim)
-		if coef > 0 {
-			weights[i] /= coef
+		dist := math32.Abs(score - sim)
+		if dist == 0 {
+			_score, err := getScore(word)
+			fmt.Println("--> TRY 0 DIST:", word, _score)
+			if err == nil && _score == 1 {
+				return 0, true, nil
+			}
 		}
-		sum += weights[i]
-	}
-	for i := range similarities {
-		weights[i] /= sum
+		sums[i] += dist
+		prods[i] *= dist
 	}
 	return index, false, nil
 }
@@ -178,20 +185,25 @@ func step(weights []float32, words []string, model *word2vec.Model) (int, bool, 
 func main() {
 	model := loadBinary(WORD2VEC_PATH)
 	records := readCsvFile(LEXICON_PATH)
-	words, weights, err := processCSV(records, model)
-	for i := range weights {
-		weights[i] = float32(1.0)
-	}
+	words, freqs, err := processCSV(records, model)
 	if err != nil {
 		log.Fatal(err)
+	}
+	sums := []float32{}
+	prods := []float32{}
+	for range freqs {
+		sums = append(sums, 1)
+		prods = append(prods, 1)
 	}
 	rand.Seed(uint64(time.Now().UnixNano()))
 	c := 0
 	var index int
 	success := false
 	for !success {
-		index, success, err = step(weights, words, model)
-		weights = append(weights[:index], weights[index+1:]...)
+		index, success, err = step(words, model, freqs, sums, prods)
+		freqs = append(freqs[:index], freqs[index+1:]...)
+		sums = append(sums[:index], sums[index+1:]...)
+		prods = append(prods[:index], prods[index+1:]...)
 		words = append(words[:index], words[index+1:]...)
 		if err != nil {
 			log.Println(err)
